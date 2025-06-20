@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI BeatMaker Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            overflow-x: auto;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn.active {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        }
+
+        .btn.stop {
+            background: linear-gradient(45deg, #ff4757, #c44569);
+        }
+
+        .tempo-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .tempo-control input {
+            width: 100px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 16px;
+        }
+
+        .ai-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .ai-section h2 {
+            margin-bottom: 20px;
+            color: #4ecdc4;
+        }
+
+        .ai-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .preset-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .preset-btn {
+            padding: 8px 16px;
+            border: 2px solid #4ecdc4;
+            background: transparent;
+            color: #4ecdc4;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .preset-btn:hover, .preset-btn.active {
+            background: #4ecdc4;
+            color: white;
+        }
+
+        .sequencer {
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .sequencer h3 {
+            margin-bottom: 20px;
+            color: #ff6b6b;
+        }
+
+        .track {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .track-name {
+            width: 100px;
+            font-weight: bold;
+            color: #4ecdc4;
+            text-align: right;
+        }
+
+        .track-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .volume-control {
+            width: 60px;
+            height: 30px;
+            border-radius: 15px;
+            border: none;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            cursor: pointer;
+        }
+
+        .step {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 2px;
+        }
+
+        .step:hover {
+            border-color: #4ecdc4;
+            background: rgba(78,205,196,0.3);
+        }
+
+        .step.active {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-color: white;
+            box-shadow: 0 0 10px rgba(255,107,107,0.5);
+        }
+
+        .step.playing {
+            animation: pulse 0.1s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .mixer {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .mixer h3 {
+            margin-bottom: 20px;
+            color: #ff6b6b;
+        }
+
+        .export-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .waveform {
+            width: 100%;
+            height: 60px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .waveform-bar {
+            position: absolute;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(0deg, #ff6b6b, #4ecdc4);
+            transition: height 0.1s ease;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #4ecdc4;
+        }
+
+        .close:hover {
+            color: #ff6b6b;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4ecdc4;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 16px;
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: rgba(78,205,196,0.3);
+            color: #4ecdc4;
+        }
+
+        .status.error {
+            background: rgba(255,107,107,0.3);
+            color: #ff6b6b;
+        }
+
+        .pattern-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .pattern-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .pattern-card:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: #4ecdc4;
+        }
+
+        .pattern-card.selected {
+            border-color: #ff6b6b;
+            background: rgba(255,107,107,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .track {
+                flex-wrap: wrap;
+            }
+            
+            .step {
+                width: 30px;
+                height: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 AI BeatMaker Pro</h1>
+            <p>Create amazing beats with AI assistance</p>
+        </div>
+
+        <div class="controls">
+            <button id="playBtn" class="btn">▶️ Play</button>
+            <button id="pauseBtn" class="btn">⏸️ Pause</button>
+            <button id="stopBtn" class="btn stop">⏹️ Stop</button>
+            <div class="tempo-control">
+                <label>BPM:</label>
+                <input type="range" id="tempoSlider" min="60" max="200" value="120">
+                <span id="tempoValue">120</span>
+            </div>
+        </div>
+
+        <div class="ai-section">
+            <h2>🤖 AI Beat Generator</h2>
+            <div class="preset-selector">
+                <button class="preset-btn active" data-genre="trap">🔥 Trap</button>
+                <button class="preset-btn" data-genre="hiphop">🎤 Hip-Hop</button>
+                <button class="preset-btn" data-genre="house">🏠 House</button>
+                <button class="preset-btn" data-genre="techno">⚡ Techno</button>
+                <button class="preset-btn" data-genre="reggaeton">💃 Reggaeton</button>
+                <button class="preset-btn" data-genre="drill">🔫 Drill</button>
+            </div>
+            <div class="ai-controls">
+                <button id="generateBtn" class="btn">🎲 Generate Beat</button>
+                <button id="savePresetBtn" class="btn">💾 Save Preset</button>
+                <button id="loadPresetBtn" class="btn">📁 Load Preset</button>
+                <button id="clearBtn" class="btn">🗑️ Clear All</button>
+            </div>
+        </div>
+
+        <div class="sequencer">
+            <h3>🎛️ Step Sequencer</h3>
+            <div id="sequencerGrid"></div>
+        </div>
+
+        <div class="waveform" id="waveform"></div>
+
+        <div class="mixer">
+            <h3>🎚️ Mixer & Effects</h3>
+            <div id="mixerControls"></div>
+            <div class="export-section">
+                <button id="exportBtn" class="btn">💿 Export Beat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="saveModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Save Preset</h2>
+            <div class="input-group">
+                <label>Preset Name:</label>
+                <input type="text" id="presetName" placeholder="My Awesome Beat">
+            </div>
+            <div class="input-group">
+                <label>Description:</label>
+                <input type="text" id="presetDesc" placeholder="A fire trap beat">
+            </div>
+            <button id="savePresetConfirm" class="btn">Save</button>
+        </div>
+    </div>
+
+    <div id="loadModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Load Preset</h2>
+            <div id="presetList"></div>
+        </div>
+    </div>
+
+    <div id="statusModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="statusMessage" class="status"></div>
+        </div>
+    </div>
+
+    <script>
+        class BeatMaker {
+            constructor() {
+                this.audioContext = null;
+                this.isPlaying = false;
+                this.currentStep = 0;
+                this.tempo = 120;
+                this.tracks = [
+                    { name: 'Kick', pattern: new Array(16).fill(false), volume: 0.8, sound: 'kick' },
+                    { name: 'Snare', pattern: new Array(16).fill(false), volume: 0.7, sound: 'snare' },
+                    { name: 'Hi-Hat', pattern: new Array(16).fill(false), volume: 0.5, sound: 'hihat' },
+                    { name: '808', pattern: new Array(16).fill(false), volume: 0.9, sound: '808' },
+                    { name: 'Open Hat', pattern: new Array(16).fill(false), volume: 0.4, sound: 'openhat' },
+                    { name: 'Crash', pattern: new Array(16).fill(false), volume: 0.6, sound: 'crash' },
+                    { name: 'Perc', pattern: new Array(16).fill(false), volume: 0.5, sound: 'perc' },
+                    { name: 'Synth', pattern: new Array(16).fill(false), volume: 0.6, sound: 'synth' }
+                ];
+                this.intervalId = null;
+                this.selectedGenre = 'trap';
+                this.customPresets = JSON.parse(localStorage.getItem('beatmaker_presets') || '[]');
+                this.samples = {};
+                this.waveformBars = [];
+                
+                this.init();
+            }
+
+            async init() {
+                await this.initAudio();
+                this.createSequencer();
+                this.createMixer();
+                this.createWaveform();
+                this.setupEventListeners();
+                this.generateSamples();
+            }
+
+            async initAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    if (this.audioContext.state === 'suspended') {
+                        await this.audioContext.resume();
+                    }
+                } catch (error) {
+                    console.error('Audio context initialization failed:', error);
+                }
+            }
+
+            generateSamples() {
+                // Generate synthetic drum samples using Web Audio API
+                const sampleBank = {
+                    kick: () => this.generateKick(),
+                    snare: () => this.generateSnare(),
+                    hihat: () => this.generateHiHat(),
+                    '808': () => this.generate808(),
+                    openhat: () => this.generateOpenHat(),
+                    crash: () => this.generateCrash(),
+                    perc: () => this.generatePerc(),
+                    synth: () => this.generateSynth()
+                };
+
+                Object.keys(sampleBank).forEach(key => {
+                    this.samples[key] = sampleBank[key]();
+                });
+            }
+
+            generateKick() {
+                const length = 0.5;
+                const sampleRate = this.audioContext.sampleRate;
+                const buffer = this.audioContext.createBuffer(1, sampleRate * length, sampleRate);
+                const data = buffer.getChannelData(0);
+
+                for (let i = 0; i < data.length; i++) {
+                    const t = i / sampleRate;
+                    const decay = Math.exp(-t * 30);
+                    const frequency = 60 * Math.exp(-t * 10);
+                    data[i] = Math.sin(2 * Math.PI * frequency * t) * decay * 0.8;
+                }
+                return buffer;
+            }
+
+            generateSnare() {
+                const length = 0.2;
+                const sampleRate = this.audioContext.sampleRate;
+                const buffer = this.audioContext.createBuffer(1, sampleRate * length, sampleRate);
+                const data = buffer.getChannelData(0);
+
+                for (let i = 0; i < data.length; i++) {
+                    const t = i / sampleRate;
+                    const decay = Math.exp(-t * 15);
+                    const noise = (Math.random() * 2 - 1) * 0.3;
+                    const tone = Math.sin(2 * Math.PI * 200 * t) * 0.7;
+                    data[i] = (noise + tone) * decay;
+                }
+                return buffer;
+            }
+
+            generateHiHat() {
+                const length = 0.1;
+                const sampleRate = this.audioContext.sampleRate;
+                const buffer = this.audioContext.createBuffer(1, sampleRate * length, sampleRate);
+                const data = buffer.getChannelData(0);
+
+                for (let i = 0; i < data.length; i++) {
+                    const t = i / sampleRate;
+                    const decay = Math.exp(-t * 50);
+                    const noise = (Math.random() * 2 - 1);
+                    data[i] = noise * decay * 0.3;
+                }
+                return buffer;
+            }
+
+            generate808() {
+                const length = 0.8;
+                const sampleRate = this.audioContext.sampleRate;
+                const buffer = this.audioContext.createBuffer(1, sampleRate * length, sampleRate);
+                const data = buffer.getChannelData(0);
+
+                for (let i = 0; i < data.length; i++) {
+                    const t = i / sampleRate;
+                    const decay = Math.exp(-t * 2);
+                    const frequency = 40 + 20 * Math.exp(-t * 5);
+                    data[i] = Math.sin(2 * Math.PI * frequency * t) * decay * 0.9;
+                }
+                return buffer;
+            }
+
+            generateOpenHat() {
+                const length = 0.3;
+                const sampleRate = this.audioContext.sampleRate;
+                const buffer = this.audioContext.createBuffer(1, sampleRate * length, sampleRate);
+                const data = buffer.getChannelData(0);
+
+                for (let i = 0; i < data.length; i++) {
+                    const t = i / sampleRate;
+                    const decay = Math.exp(-t * 8);
+                    const noise = (Math.random() * 2 - 1);
+                    data[i] = noise * decay * 0.4;
+                }
+                return buffer;
+            }
+
+            generateCrash() {
+                const length = 1.0;
+                const sampleRate = this.audioContext.sampleRate;
+                const buffer = this.audioContext.createBuffer(1, sampleRate * length, sampleRate);
+                const data = buffer.getChannelData(0);
+
+                for (let i = 0; i < data.length; i++) {
+                    const t = i / sampleRate;
+                    const decay = Math.exp(-t * 3);
+                    const noise = (Math.random() * 2 - 1);
+                    const shimmer = Math.sin(2 * Math.PI * 3000 * t) * 0.3;
+                    data[i] = (noise + shimmer) * decay * 0.5;
+                }
+                return buffer;
+            }
+
+            generatePerc() {
+                const length = 0.15;
+                const sampleRate = this.audioContext.sampleRate;
+                const buffer = this.audioContext.createBuffer(1, sampleRate * length, sampleRate);
+                const data = buffer.getChannelData(0);
+
+                for (let i = 0; i < data.length; i++) {
+                    const t = i / sampleRate;
+                    const decay = Math.exp(-t * 25);
+                    const frequency = 400 + 200 * Math.exp(-t * 10);
+                    data[i] = Math.sin(2 * Math.PI * frequency * t) * decay * 0.6;
+                }
+                return buffer;
+            }
+
+            generateSynth() {
+                const length = 0.5;
+                const sampleRate = this.audioContext.sampleRate;
+                const buffer = this.audioContext.createBuffer(1, sampleRate * length, sampleRate);
+                const data = buffer.getChannelData(0);
+
+                for (let i = 0; i < data.length; i++) {
+                    const t = i / sampleRate;
+                    const decay = Math.exp(-t * 5);
+                    const frequency = 220;
+                    const harmonics = Math.sin(2 * Math.PI * frequency * t) + 
+                                    0.5 * Math.sin(2 * Math.PI * frequency * 2 * t) +
+                                    0.25 * Math.sin(2 * Math.PI * frequency * 3 * t);
+                    data[i] = harmonics * decay * 0.4;
+                }
+                return buffer;
+            }
+
+            createSequencer() {
+                const grid = document.getElementById('sequencerGrid');
+                grid.innerHTML = '';
+
+                this.tracks.forEach((track, trackIndex) => {
+                    const trackDiv = document.createElement('div');
+                    trackDiv.className = 'track';
+
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'track-name';
+                    nameDiv.textContent = track.name;
+
+                    const volumeSlider = document.createElement('input');
+                    volumeSlider.type = 'range';
+                    volumeSlider.min = '0';
+                    volumeSlider.max = '1';
+                    volumeSlider.step = '0.1';
+                    volumeSlider.value = track.volume;
+                    volumeSlider.className = 'volume-control';
+                    volumeSlider.addEventListener('input', (e) => {
+                        this.tracks[trackIndex].volume = parseFloat(e.target.value);
+                    });
+
+                    const stepsDiv = document.createElement('div');
+                    stepsDiv.className = 'track-controls';
+
+                    for (let i = 0; i < 16; i++) {
+                        const step = document.createElement('div');
+                        step.className = 'step';
+                        step.dataset.track = trackIndex;
+                        step.dataset.step = i;
+                        
+                        if (track.pattern[i]) {
+                            step.classList.add('active');
+                        }
+
+                        step.addEventListener('click', () => {
+                            track.pattern[i] = !track.pattern[i];
+                            step.classList.toggle('active');
+                            this.playSound(track.sound, track.volume);
+                        });
+
+                        stepsDiv.appendChild(step);
+                    }
+
+                    trackDiv.appendChild(nameDiv);
+                    trackDiv.appendChild(volumeSlider);
+                    trackDiv.appendChild(stepsDiv);
+                    grid.appendChild(trackDiv);
+                });
+            }
+
+            createMixer() {
+                const mixerDiv = document.getElementById('mixerControls');
+                mixerDiv.innerHTML = `
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                        <div style="text-align: center;">
+                            <label>Master Volume</label>
+                            <input type="range" id="masterVolume" min="0" max="1" step="0.1" value="0.7" class="volume-control">
+                        </div>
+                        <div style="text-align: center;">
+                            <label>Swing</label>
+                            <input type="range" id="swing" min="0" max="0.3" step="0.05" value="0" class="volume-control">
+                        </div>
+                        <div style="text-align: center;">
+                            <label>Reverb</label>
+                            <input type="range" id="reverb" min="0" max="1" step="0.1" value="0.2" class="volume-control">
+                        </div>
+                    </div>
+                `;
+            }
+
+            createWaveform() {
+                const waveform = document.getElementById('waveform');
+                waveform.innerHTML = '';
+                
+                for (let i = 0; i < 64; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'waveform-bar';
+                    bar.style.left = `${(i / 64) * 100}%`;
+                    bar.style.height = '0%';
+                    waveform.appendChild(bar);
+                    this.waveformBars.push(bar);
+                }
+            }
+
+            updateWaveform() {
+                this.waveformBars.forEach((bar, index) => {
+                    const height = Math.random() * 100;
+                    bar.style.height = `${height}%`;
+                });
+            }
+
+            setupEventListeners() {
+                document.getElementById('playBtn').addEventListener('click', () => this.play());
+                document.getElementById('pauseBtn').addEventListener('click', () => this.pause());
+                document.getElementById('stopBtn').addEventListener('click', () => this.stop());
+                
+                const tempoSlider = document.getElementById('tempoSlider');
+                tempoSlider.addEventListener('input', (e) => {
+                    this.tempo = parseInt(e.target.value);
+                    document.getElementById('tempoValue').textContent = this.tempo;
+                    if (this.isPlaying) {
+                        this.stop();
+                        this.play();
+                    }
+                });
+
+                document.getElementById('generateBtn').addEventListener('click', () => this.generateBeat());
+                document.getElementById('savePresetBtn').addEventListener('click', () => this.showSaveModal());
+                document.getElementById('loadPresetBtn').addEventListener('click', () => this.showLoadModal());
+                document.getElementById('clearBtn').addEventListener('click', () => this.clearAll());
+                document.getElementById('exportBtn').addEventListener('click', () => this.exportBeat());
+
+                // Genre selection
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.selectedGenre = btn.dataset.genre;
+                    });
+                });
+
+                // Modal handlers
+                document.querySelectorAll('.close').forEach(closeBtn => {
+                    closeBtn.addEventListener('click', (e) => {
+                        e.target.closest('.modal').style.display = 'none';
+                    });
+                });
+
+                document.getElementById('savePresetConfirm').addEventListener('click', () => this.savePreset());
+            }
+
+            play() {
+                if (!this.audioContext) {
+                    this.showStatus('Audio context not initialized', 'error');
+                    return;
+                }
+                
+                this.isPlaying = true;
+                document.getElementById('playBtn').classList.add('active');
+                
+                const stepTime = (60 / this.tempo / 4) * 1000; // 16th notes
+                
+                this.intervalId = setInterval(() => {
+                    this.playStep();
+                    this.currentStep = (this.currentStep + 1) % 16;
+                }, stepTime);
+            }
+
+            pause() {
+                this.isPlaying = false;
+                document.getElementById('playBtn').classList.remove('active');
+                if (this.intervalId) {
+                    clearInterval(this.intervalId);
+                    this.intervalId = null;
+                }
+            }
+
+            stop() {
+                this.pause();
+                this.currentStep = 0;
+                this.updateStepIndicator();
+            }
+
+            playStep() {
+                this.updateStepIndicator();
+                this.updateWaveform();
+                
+                this.tracks.forEach(track => {
+                    if (track.pattern[this.currentStep]) {
+                        this.playSound(track.sound, track.volume);
+                    }
+                });
+            }
+
+            updateStepIndicator() {
+                document.querySelectorAll('.step').forEach((step, index) => {
+                    const stepIndex = index % 16;
+                    step.classList.remove('playing');
+                    if (stepIndex === this.currentStep) {
+                        step.classList.add('playing');
+                    }
+                });
+            }
+
+            playSound(soundType, volume = 0.5) {
+                if (!this.audioContext || !this.samples[soundType]) return;
+
+                const source = this.audioContext.createBufferSource();
+                const gainNode = this.audioContext.createGain();
+                
+                source.buffer = this.samples[soundType];
+                gainNode.gain.value = volume * parseFloat(document.getElementById('masterVolume')?.value || 0.7);
+                
+                source.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                source.start();
+            }
+
+            generateBeat() {
+                this.showStatus('Generating AI beat...', 'success');
+                
+                // Clear existing pattern
+                this.clearAll();
+                
+                // AI pattern generation based on genre
+                const patterns = this.getGenrePatterns();
+                
+                setTimeout(() => {
+                    this.tracks.forEach((track, trackIndex) => {
+                        const pattern = patterns[this.selectedGenre][track.name.toLowerCase()] || [];
+                        pattern.forEach(stepIndex => {
+                            if (stepIndex < 16) {
+                                track.pattern[stepIndex] = true;
+                            }
+                        });
+                    });
+                    
+                    this.createSequencer();
+                    this.showStatus('AI beat generated successfully!', 'success');
+                }, 1000);
+            }
+
+            getGenrePatterns() {
+                return {
+                    trap: {
+                        kick: [0, 6, 12],
+                        snare: [4, 12],
+                        'hi-hat': [2, 4, 6, 8, 10, 12, 14],
+                        '808': [0, 3, 6, 9, 12, 15],
+                        'open hat': [7, 15],
+                        perc: [1, 5, 9, 13]
+                    },
+                    hiphop: {
+                        kick: [0, 4, 8, 12],
+                        snare: [4, 12],
+                        'hi-hat': [2, 6, 10, 14],
+                        '808': [0, 2, 8, 10],
+                        'open hat': [6, 14],
+                        perc: [3, 7, 11, 15]
+                    },
+                    house: {
+                        kick: [0, 4, 8, 12],
+                        snare: [4, 12],
+                        'hi-hat': [2, 6, 10, 14],
+                        synth: [1, 5, 9, 13],
+                        'open hat': [7, 15],
+                        perc: [3, 11]
+                    },
+                    techno: {
+                        kick: [0, 4, 8, 12],
+                        snare: [4, 12],
+                        'hi-hat': [1, 3, 5, 7, 9, 11, 13, 15],
+                        synth: [2, 6, 10, 14],
+                        perc: [1, 9]
+                    },
+                    reggaeton: {
+                        kick: [0, 3, 6, 9, 12, 15],
+                        snare: [4, 10, 12],
+                        'hi-hat': [2, 4, 6, 8, 10, 12, 14],
+                        perc: [1, 5, 7, 11, 13]
+                    },
+                    drill: {
+                        kick: [0, 6, 10, 12],
+                        snare: [4, 12],
+                        'hi-hat': [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15],
+                        '808': [0, 3, 6, 10, 12, 15],
+                        'open hat': [8],
+                        perc: [2, 8, 14]
+                    }
+                };
+            }
+
+            clearAll() {
+                this.tracks.forEach(track => {
+                    track.pattern.fill(false);
+                });
+                this.createSequencer();
+            }
+
+            showSaveModal() {
+                document.getElementById('saveModal').style.display = 'block';
+            }
+
+            showLoadModal() {
+                const modal = document.getElementById('loadModal');
+                const presetList = document.getElementById('presetList');
+                
+                presetList.innerHTML = '';
+                
+                if (this.customPresets.length === 0) {
+                    presetList.innerHTML = '<p>No saved presets found.</p>';
+                } else {
+                    this.customPresets.forEach((preset, index) => {
+                        const presetDiv = document.createElement('div');
+                        presetDiv.className = 'pattern-card';
+                        presetDiv.innerHTML = `
+                            <h4>${preset.name}</h4>
+                            <p>${preset.description}</p>
+                            <small>Saved: ${new Date(preset.timestamp).toLocaleDateString()}</small>
+                        `;
+                        presetDiv.addEventListener('click', () => {
+                            this.loadPreset(index);
+                            modal.style.display = 'none';
+                        });
+                        presetList.appendChild(presetDiv);
+                    });
+                }
+                
+                modal.style.display = 'block';
+            }
+
+            savePreset() {
+                const name = document.getElementById('presetName').value;
+                const description = document.getElementById('presetDesc').value;
+                
+                if (!name) {
+                    this.showStatus('Please enter a preset name', 'error');
+                    return;
+                }
+                
+                const preset = {
+                    name: name,
+                    description: description,
+                    timestamp: Date.now(),
+                    tracks: JSON.parse(JSON.stringify(this.tracks))
+                };
+                
+                this.customPresets.push(preset);
+                localStorage.setItem('beatmaker_presets', JSON.stringify(this.customPresets));
+                
+                document.getElementById('saveModal').style.display = 'none';
+                this.showStatus('Preset saved successfully!', 'success');
+                
+                // Clear form
+                document.getElementById('presetName').value = '';
+                document.getElementById('presetDesc').value = '';
+            }
+
+            loadPreset(index) {
+                const preset = this.customPresets[index];
+                if (preset) {
+                    this.tracks = JSON.parse(JSON.stringify(preset.tracks));
+                    this.createSequencer();
+                    this.showStatus(`Loaded preset: ${preset.name}`, 'success');
+                }
+            }
+
+            exportBeat() {
+                this.showStatus('Exporting beat...', 'success');
+                
+                // Create a simple export by recording the pattern
+                const duration = (60 / this.tempo) * 4; // 4 beats
+                const sampleRate = 44100;
+                const length = sampleRate * duration;
+                const buffer = this.audioContext.createBuffer(1, length, sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                // Simulate the beat pattern
+                const stepTime = duration / 16;
+                
+                for (let step = 0; step < 16; step++) {
+                    const startSample = Math.floor(step * stepTime * sampleRate);
+                    
+                    this.tracks.forEach(track => {
+                        if (track.pattern[step] && this.samples[track.sound]) {
+                            const sampleBuffer = this.samples[track.sound];
+                            const sampleData = sampleBuffer.getChannelData(0);
+                            
+                            for (let i = 0; i < Math.min(sampleData.length, data.length - startSample); i++) {
+                                if (startSample + i < data.length) {
+                                    data[startSample + i] += sampleData[i] * track.volume * 0.3;
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Convert to WAV and download
+                setTimeout(() => {
+                    this.downloadWAV(buffer);
+                    this.showStatus('Beat exported successfully!', 'success');
+                }, 1500);
+            }
+
+            downloadWAV(buffer) {
+                const length = buffer.length;
+                const arrayBuffer = new ArrayBuffer(44 + length * 2);
+                const view = new DataView(arrayBuffer);
+                
+                // WAV header
+                const writeString = (offset, string) => {
+                    for (let i = 0; i < string.length; i++) {
+                        view.setUint8(offset + i, string.charCodeAt(i));
+                    }
+                };
+                
+                writeString(0, 'RIFF');
+                view.setUint32(4, 36 + length * 2, true);
+                writeString(8, 'WAVE');
+                writeString(12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true);
+                view.setUint16(22, 1, true);
+                view.setUint32(24, buffer.sampleRate, true);
+                view.setUint32(28, buffer.sampleRate * 2, true);
+                view.setUint16(32, 2, true);
+                view.setUint16(34, 16, true);
+                writeString(36, 'data');
+                view.setUint32(40, length * 2, true);
+                
+                // Convert float samples to 16-bit PCM
+                const data = buffer.getChannelData(0);
+                let offset = 44;
+                for (let i = 0; i < length; i++) {
+                    const sample = Math.max(-1, Math.min(1, data[i]));
+                    view.setInt16(offset, sample * 0x7FFF, true);
+                    offset += 2;
+                }
+                
+                // Create and download
+                const blob = new Blob([arrayBuffer], { type: 'audio/wav' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `beat_${Date.now()}.wav`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            showStatus(message, type) {
+                const statusDiv = document.getElementById('statusMessage');
+                statusDiv.textContent = message;
+                statusDiv.className = `status ${type}`;
+                document.getElementById('statusModal').style.display = 'block';
+                
+                setTimeout(() => {
+                    document.getElementById('statusModal').style.display = 'none';
+                }, 2000);
+            }
+        }
+
+        // Initialize the beat maker when the page loads
+        let beatMaker;
+        
+        window.addEventListener('load', async () => {
+            // Add loading indicator
+            document.body.insertAdjacentHTML('afterbegin', `
+                <div id="loader" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 9999;
+                    color: white;
+                    font-size: 24px;
+                ">
+                    <div style="text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🎵</div>
+                        <div>Loading AI BeatMaker...</div>
+                    </div>
+                </div>
+            `);
+            
+            try {
+                beatMaker = new BeatMaker();
+                
+                // Remove loader after initialization
+                setTimeout(() => {
+                    const loader = document.getElementById('loader');
+                    if (loader) {
+                        loader.remove();
+                    }
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Failed to initialize BeatMaker:', error);
+                document.getElementById('loader').innerHTML = `
+                    <div style="text-align: center; color: #ff6b6b;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+                        <div>Failed to load BeatMaker</div>
+                        <div style="font-size: 14px; margin-top: 10px;">Please refresh the page</div>
+                    </div>
+                `;
+            }
+        });
+
+        // Handle audio context resume on user interaction
+        document.addEventListener('click', async () => {
+            if (beatMaker && beatMaker.audioContext && beatMaker.audioContext.state === 'suspended') {
+                await beatMaker.audioContext.resume();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
